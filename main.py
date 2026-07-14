@@ -1,100 +1,119 @@
-# STEP 1A
-# Import SQL Library and Pandas
 import sqlite3
 import pandas as pd
 
-# STEP 1B
-# Connect to the database
+# ==========================================
+# PART 1: Connecting to the Data
+# ==========================================
+
+# STEP 1A & 1B
+# Import SQL Library, Pandas, and connect to the database
 conn = sqlite3.connect("data.sqlite")
 
-# Reference code provided by the lab to inspect employee data
+# Reference code provided by the lab to see employee data
 employee_data = pd.read_sql("""SELECT * FROM employees""", conn)
 print("---------------------Employee Data---------------------")
 print(employee_data)
 print("-------------------End Employee Data-------------------")
 
 
+# ==========================================
+# PART 2: Basic Select Filtering
+# ==========================================
+
 # STEP 2
-# Select employeeNumber and lastName from all employees
+# Select employee number and last name from all employees
 df_first_five = pd.read_sql("""
     SELECT employeeNumber, lastName 
     FROM employees
 """, conn)
 
-
 # STEP 3
-# Reverse the column selection: lastName comes before employeeNumber
+# Select last name and employee number (reversed column order)
 df_five_reverse = pd.read_sql("""
     SELECT lastName, employeeNumber 
     FROM employees
 """, conn)
 
 
+# ==========================================
+# PART 3: Aliasing in Select
+# ==========================================
+
 # STEP 4
-# Select lastName and employeeNumber, renaming employeeNumber as 'ID'
+# Select last name and rename employee number column to 'ID'
 df_alias = pd.read_sql("""
     SELECT lastName, employeeNumber AS ID 
     FROM employees
 """, conn)
 
 
+# ==========================================
+# PART 4: CASE Function
+# ==========================================
+
 # STEP 5
-# Use a CASE statement to categorize executive roles
+# Categorize executive roles and output a new column called 'role'
 df_executive = pd.read_sql("""
     SELECT *,
         CASE 
-            WHEN jobTitle = 'President' OR jobTitle = 'VP Sales' OR jobTitle = 'VP Marketing' THEN 'Executive'
+            WHEN jobTitle = 'President' 
+              OR jobTitle = 'VP Sales' 
+              OR jobTitle = 'VP Marketing' THEN 'Executive'
             ELSE 'Not Executive'
         END AS role
     FROM employees
 """, conn)
 
 
+# ==========================================
+# PART 5: Built-In Functions - Strings
+# ==========================================
+
 # STEP 6
-# Calculate the length of the last name using the LENGTH() function
+# Find the character length of the last name as 'name_length'
 df_name_length = pd.read_sql("""
     SELECT LENGTH(lastName) AS name_length 
     FROM employees
 """, conn)
 
-
 # STEP 7
-# Extract the first two characters of each job title using SUBSTR()
+# Extract the first two characters of each job title as 'short_title'
 df_short_title = pd.read_sql("""
     SELECT SUBSTR(jobTitle, 1, 2) AS short_title 
     FROM employees
 """, conn)
 
 
-# Reference code provided by the lab to inspect order details data
+# ==========================================
+# PART 6: Built-In Functions - Numerics & Dates
+# ==========================================
+
+# Reference code provided by the lab to see order details
 order_details = pd.read_sql("""SELECT * FROM orderDetails;""", conn) 
 print("------------------Order Details Data------------------")
 print(order_details)
 print("----------------End Order Details Data----------------")
 
-
 # STEP 8
-# Calculate the rounded total price row-by-row, then use pandas .sum()
-# Note: SQLite's ROUND() handles the internal multiplication math perfectly.
-df_sum_individual = pd.read_sql("""
+# Select the internal rounded product of each row, then apply pandas .sum()
+sum_total_price = pd.read_sql("""
     SELECT ROUND(priceEach * quantityOrdered) AS total_price 
     FROM orderDetails
-""", conn)
-sum_total_price = df_sum_individual['total_price'].sum()
-
+""", conn).sum()
 
 # STEP 9
-# Extract day, month, and year parts from the orderDate column
-# SQLite stores dates as strings, so strftime formats them securely.
+# Select original order date alongside parsed day, month, and year fields
 df_day_month_year = pd.read_sql("""
     SELECT 
-        orderDate, 
-        strftime('%d', orderDate) AS day, 
-        strftime('%m', orderDate) AS month, 
-        strftime('%Y', orderDate) AS year 
-    FROM orderDetails
+        orderDate,
+        STRFTIME('%d', orderDate) AS day,
+        STRFTIME('%m', orderDate) AS month,
+        STRFTIME('%Y', orderDate) AS year
+    FROM orders
 """, conn)
 
 
-# Close the database connection safely at the end of the script
+# ==========================================
+# Close Connection
+# ==========================================
 conn.close()
